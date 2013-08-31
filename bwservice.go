@@ -10,9 +10,9 @@ import (
 )
 
 const (
-	BACKGROUND_IMAGE = "http://conf.bwgame.org/static/res/sbk.jpg"
-	CLOSE_IMAGE1     = "http://conf.bwgame.org/static/res/close1.gif"
-	CLOSE_IMAGE2     = "http://conf.bwgame.org/static/res/close2.gif"
+	BACKGROUND_IMAGE = "http://bwservice.bwgame.com.cn/images/bk.jpg"
+	CLOSE_IMAGE1     = "http://bwservice.bwgame.com.cn/images/close1.gif"
+	CLOSE_IMAGE2     = "http://bwservice.bwgame.com.cn/images/close2.gif"
 	CLICK_URL        = "http://shenzuo.bwgame.com.cn"
 	CLOSE_BUTTON_X   = "293"
 	CLOSE_BUTTON_Y   = "4"
