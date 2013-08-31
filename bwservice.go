@@ -64,7 +64,14 @@ func Patrol(rw http.ResponseWriter, req *http.Request) {
 		result += "&notify"
 	}
 	rw.Write([]byte(result))
-	log.Printf("[%s] %s?%s %v\n", req.RemoteAddr, req.URL.Path, req.URL.RawQuery, notify)
+	remote_addr := req.Header.Get("X-Forwarded-For")
+	if remote_addr == "" {
+		remote_addr = req.Header.Get("X-Real-IP")
+	}
+	if remote_addr == "" {
+		remote_addr = req.RemoteAddr
+	}
+	log.Printf("[%s] %s?%s %v\n", remote_addr, req.URL.Path, req.URL.RawQuery, notify)
 }
 
 func main() {
