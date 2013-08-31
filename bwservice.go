@@ -34,11 +34,11 @@ func init() {
 
 func Patrol(rw http.ResponseWriter, req *http.Request) {
 	notify := false
+	now := time.Now()
 	req.ParseForm()
 	if req.Form.Get("devmod") == "1" {
 		notify = true
 	} else {
-		now := time.Now()
 		s := req.Form.Get("lasttime")
 		lasttime, err := strconv.Atoi(s)
 		if err != nil || lasttime == 0 {
@@ -55,6 +55,7 @@ func Patrol(rw http.ResponseWriter, req *http.Request) {
 	result := ""
 	result += "bkimage=" + BACKGROUND_IMAGE
 	result += "&url=" + CLICK_URL
+	result += "&lasttime=" + strconv.Itoa(int(now.Unix()))
 	result += "&clsbtimage1=" + CLOSE_IMAGE1
 	result += "&clsbtimage2=" + CLOSE_IMAGE2
 	result += "&clsbtx=" + CLOSE_BUTTON_X
