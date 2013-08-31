@@ -5,7 +5,6 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"net/url"
 	"strconv"
 	"time"
 )
@@ -53,17 +52,17 @@ func Patrol(rw http.ResponseWriter, req *http.Request) {
 			}
 		}
 	}
-	result := url.Values{}
-	result.Add("bkimage", BACKGROUND_IMAGE)
-	result.Add("url", CLICK_URL)
-	result.Add("clsbtimage1", CLOSE_IMAGE1)
-	result.Add("clsbtimage2", CLOSE_IMAGE2)
-	result.Add("clsbtx", CLOSE_BUTTON_X)
-	result.Add("clsbty", CLOSE_BUTTON_Y)
+	result := ""
+	result += "bkimage=" + BACKGROUND_IMAGE
+	result += "&url=" + CLICK_URL
+	result += "&clsbtimage1=" + CLOSE_IMAGE1
+	result += "&clsbtimage2=" + CLOSE_IMAGE2
+	result += "&clsbtx=" + CLOSE_BUTTON_X
+	result += "&clsbty=" + CLOSE_BUTTON_Y
 	if notify {
-		result.Add("notify", "1")
+		result += "&notify"
 	}
-	rw.Write([]byte(result.Encode()))
+	rw.Write([]byte(result))
 	log.Printf("[%s] %s?%s %v\n", req.RemoteAddr, req.URL.Path, req.URL.RawQuery, notify)
 }
 
