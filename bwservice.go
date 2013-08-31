@@ -13,7 +13,6 @@ const (
 	BACKGROUND_IMAGE = "http://bwservice.bwgame.com.cn/images/bk.jpg"
 	CLOSE_IMAGE1     = "http://bwservice.bwgame.com.cn/images/close1.gif"
 	CLOSE_IMAGE2     = "http://bwservice.bwgame.com.cn/images/close2.gif"
-	CLICK_URL        = "http://shenzuo.bwgame.com.cn"
 	CLOSE_BUTTON_X   = "293"
 	CLOSE_BUTTON_Y   = "4"
 )
@@ -21,16 +20,8 @@ const (
 var (
 	NotifyStartTime time.Time
 	NotifyEndTime   time.Time
+	ClickURL        string
 )
-
-func init() {
-	loc, err := time.LoadLocation("Asia/Shanghai")
-	if err != nil {
-		panic(err)
-	}
-	NotifyStartTime = time.Date(2013, time.August, 31, 16, 1, 0, 0, loc)
-	NotifyEndTime = time.Date(2013, time.September, 31, 16, 1, 0, 0, loc)
-}
 
 func Patrol(rw http.ResponseWriter, req *http.Request) {
 	notify := false
@@ -54,7 +45,7 @@ func Patrol(rw http.ResponseWriter, req *http.Request) {
 	}
 	result := ""
 	result += "bkimage=" + BACKGROUND_IMAGE
-	result += "&url=" + CLICK_URL
+	result += "&url=" + ClickURL
 	result += "&lasttime=" + strconv.Itoa(int(now.Unix()))
 	result += "&clsbtimage1=" + CLOSE_IMAGE1
 	result += "&clsbtimage2=" + CLOSE_IMAGE2
@@ -77,9 +68,31 @@ func Patrol(rw http.ResponseWriter, req *http.Request) {
 func main() {
 	var host = flag.String("host", "", "Server listen host, default 0.0.0.0")
 	var port = flag.Int("port", 80, "Server listen port, default 80")
+	var url = flag.String("url", "", "Click open url")
+	var nst = flag.String("nst", "", "Notify start time, format: YYYY-mm-dd HH:MM")
+	var nvt = flag.String("nvt", "", "Notify over time, format as start time")
 	flag.Parse()
+	loc, err := time.LoadLocation("Asia/Shanghai")
+	if err != nil {
+		panic(err)
+	}
+	if t, err := time.ParseInLocation("2006-01-02 15:04", *nst, loc); err != nil {
+		panic(err)
+	} else {
+		NotifyStartTime = t
+	}
+	if t, err := time.ParseInLocation("2006-01-02 15:04", *nvt, loc); err != nil {
+		panic(err)
+	} else {
+		NotifyEndTime = t
+	}
+	if *url == "" {
+		panic(*url)
+	} else {
+		ClickURL = *url
+	}
 	var addr = net.JoinHostPort(*host, strconv.Itoa(*port))
 	http.HandleFunc("/patrol", Patrol)
-	log.Println(addr)
+	log.Printf("[%s] (%s) - (%s) => %s\n", addr, NotifyStartTime.String(), NotifyEndTime.String(), ClickURL)
 	log.Fatal(http.ListenAndServe(addr, nil))
 }
