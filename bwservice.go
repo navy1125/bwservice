@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"runtime"
 	"strconv"
 	"time"
 )
@@ -71,7 +72,11 @@ func main() {
 	var url = flag.String("url", "", "Click open url")
 	var nst = flag.String("nst", "", "Notify start time, format: YYYY-mm-dd HH:MM")
 	var nvt = flag.String("nvt", "", "Notify over time, format as start time")
+	var cpu = flag.Int("cpu", 0, "Go runtime max process")
 	flag.Parse()
+	if *cpu > 0 {
+		runtime.GOMAXPROCS(*cpu)
+	}
 	loc, err := time.LoadLocation("Asia/Shanghai")
 	if err != nil {
 		panic(err)
