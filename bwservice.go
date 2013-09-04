@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"log"
+	"github.com/xuyu/logging"
 	"net"
 	"net/http"
 	"runtime"
@@ -16,6 +16,7 @@ const (
 	CLOSE_IMAGE2     = "http://bwservice.bwgame.com.cn/images/close2.gif"
 	CLOSE_BUTTON_X   = "293"
 	CLOSE_BUTTON_Y   = "4"
+	LOGFILE_SUFFIX   = "060102-15"
 )
 
 var (
@@ -63,7 +64,7 @@ func Patrol(rw http.ResponseWriter, req *http.Request) {
 	if remote_addr == "" {
 		remote_addr = req.RemoteAddr
 	}
-	log.Printf("[%s] %s?%s %v\n", remote_addr, req.URL.Path, req.URL.RawQuery, notify)
+	logging.Info("[%s] %s?%s %v\n", remote_addr, req.URL.Path, req.URL.RawQuery, notify)
 }
 
 func main() {
@@ -73,7 +74,15 @@ func main() {
 	var nst = flag.String("nst", "", "Notify start time, format: YYYY-mm-dd HH:MM")
 	var nvt = flag.String("nvt", "", "Notify over time, format as start time")
 	var cpu = flag.Int("cpu", 0, "Go runtime max process")
+	var logpath = flag.String("logpath", "./", "Log path")
+	var logfile = flag.String("logfile", "bwservice.log", "Log filename")
 	flag.Parse()
+	if logger, err := logging.NewHourRotationLogger(*logfile, *logpath, LOGFILE_SUFFIX); err != nil {
+		panic(err)
+	} else {
+		logging.SetDefaultLogger(logger)
+		logging.SetPrefix("BWService")
+	}
 	if *cpu > 0 {
 		runtime.GOMAXPROCS(*cpu)
 	}
@@ -98,6 +107,8 @@ func main() {
 	}
 	var addr = net.JoinHostPort(*host, strconv.Itoa(*port))
 	http.HandleFunc("/patrol", Patrol)
-	log.Printf("[%s] (%s) - (%s) => %s\n", addr, NotifyStartTime.String(), NotifyEndTime.String(), ClickURL)
-	log.Fatal(http.ListenAndServe(addr, nil))
+	logging.Info("[%s] (%s) - (%s) => %s\n", addr, NotifyStartTime.String(), NotifyEndTime.String(), ClickURL)
+	if err := http.ListenAndServe(addr, nil); err != nil {
+		logging.Error("%s", err.Error())
+	}
 }
