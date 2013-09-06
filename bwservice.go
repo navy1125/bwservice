@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"github.com/xuyu/logging"
 	"net"
@@ -23,6 +24,7 @@ var (
 	NotifyStartTime time.Time
 	NotifyEndTime   time.Time
 	ClickURL        string
+	NextMinute      = 15
 )
 
 func Patrol(rw http.ResponseWriter, req *http.Request) {
@@ -45,18 +47,27 @@ func Patrol(rw http.ResponseWriter, req *http.Request) {
 			}
 		}
 	}
-	result := ""
-	result += "bkimage=" + BACKGROUND_IMAGE
-	result += "&url=" + ClickURL
-	result += "&lasttime=" + strconv.Itoa(int(now.Unix()))
-	result += "&clsbtimage1=" + CLOSE_IMAGE1
-	result += "&clsbtimage2=" + CLOSE_IMAGE2
-	result += "&clsbtx=" + CLOSE_BUTTON_X
-	result += "&clsbty=" + CLOSE_BUTTON_Y
+	result := bytes.NewBuffer(nil)
+	result.WriteString("bkimage=")
+	result.WriteString(BACKGROUND_IMAGE)
+	result.WriteString("&url=")
+	result.WriteString(ClickURL)
+	result.WriteString("&lasttime=")
+	result.WriteString(strconv.Itoa(int(now.Unix())))
+	result.WriteString("&clsbtimage1=")
+	result.WriteString(CLOSE_IMAGE1)
+	result.WriteString("&clsbtimage2=")
+	result.WriteString(CLOSE_IMAGE2)
+	result.WriteString("&clsbtx=")
+	result.WriteString(CLOSE_BUTTON_X)
+	result.WriteString("&clsbty=")
+	result.WriteString(CLOSE_BUTTON_Y)
+	result.WriteString("&nextmin=")
+	result.WriteString(strconv.Itoa(NextMinute))
 	if notify {
-		result += "&notify"
+		result.WriteString("&notify")
 	}
-	rw.Write([]byte(result))
+	rw.Write(result.Bytes())
 	remote_addr := req.Header.Get("X-Forwarded-For")
 	if remote_addr == "" {
 		remote_addr = req.Header.Get("X-Real-IP")
@@ -76,6 +87,7 @@ func main() {
 	var cpu = flag.Int("cpu", 0, "Go runtime max process")
 	var logpath = flag.String("logpath", "./", "Log path")
 	var logfile = flag.String("logfile", "bwservice.log", "Log filename")
+	var nextmin = flag.Int("nextmin", NextMinute, "Next request duration(minute)")
 	flag.Parse()
 	if logger, err := logging.NewHourRotationLogger(*logfile, *logpath, LOGFILE_SUFFIX); err != nil {
 		panic(err)
@@ -104,6 +116,9 @@ func main() {
 		panic(*url)
 	} else {
 		ClickURL = *url
+	}
+	if *nextmin > 0 {
+		NextMinute = *nextmin
 	}
 	var addr = net.JoinHostPort(*host, strconv.Itoa(*port))
 	http.HandleFunc("/patrol", Patrol)
