@@ -86,14 +86,16 @@ func main() {
 	var nvt = flag.String("nvt", "", "Notify over time, format as start time")
 	var cpu = flag.Int("cpu", 0, "Go runtime max process")
 	var logpath = flag.String("logpath", "./", "Log path")
-	var logfile = flag.String("logfile", "bwservice.log", "Log filename")
+	var logfile = flag.String("logfile", "", "Log filename")
 	var nextmin = flag.Int("nextmin", NextMinute, "Next request duration(minute)")
 	flag.Parse()
-	if logger, err := logging.NewHourRotationLogger(*logfile, *logpath, LOGFILE_SUFFIX); err != nil {
-		panic(err)
-	} else {
-		logging.SetDefaultLogger(logger)
-		logging.SetPrefix("BWService")
+	if *logfile != "" {
+		if logger, err := logging.NewHourRotationLogger(*logfile, *logpath, LOGFILE_SUFFIX); err != nil {
+			panic(err)
+		} else {
+			logging.SetDefaultLogger(logger)
+			logging.SetPrefix("BWService")
+		}
 	}
 	if *cpu > 0 {
 		runtime.GOMAXPROCS(*cpu)
@@ -122,7 +124,7 @@ func main() {
 	}
 	var addr = net.JoinHostPort(*host, strconv.Itoa(*port))
 	http.HandleFunc("/patrol", Patrol)
-	logging.Info("[%s] (%s) - (%s) => %s\n", addr, NotifyStartTime.String(), NotifyEndTime.String(), ClickURL)
+	logging.Info("[%s] (%s) - (%s) => %s, %d\n", addr, NotifyStartTime.String(), NotifyEndTime.String(), ClickURL, NextMinute)
 	if err := http.ListenAndServe(addr, nil); err != nil {
 		logging.Error("%s", err.Error())
 	}
