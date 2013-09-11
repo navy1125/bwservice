@@ -1,13 +1,13 @@
 package main
 
 import (
-	"bytes"
 	"flag"
 	"github.com/xuyu/logging"
 	"net"
 	"net/http"
 	"runtime"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -47,27 +47,28 @@ func Patrol(rw http.ResponseWriter, req *http.Request) {
 			}
 		}
 	}
-	result := bytes.NewBuffer(nil)
-	result.WriteString("bkimage=")
-	result.WriteString(BACKGROUND_IMAGE)
-	result.WriteString("&url=")
-	result.WriteString(ClickURL)
-	result.WriteString("&lasttime=")
-	result.WriteString(strconv.Itoa(int(now.Unix())))
-	result.WriteString("&clsbtimage1=")
-	result.WriteString(CLOSE_IMAGE1)
-	result.WriteString("&clsbtimage2=")
-	result.WriteString(CLOSE_IMAGE2)
-	result.WriteString("&clsbtx=")
-	result.WriteString(CLOSE_BUTTON_X)
-	result.WriteString("&clsbty=")
-	result.WriteString(CLOSE_BUTTON_Y)
-	result.WriteString("&nextmin=")
-	result.WriteString(strconv.Itoa(NextMinute))
-	if notify {
-		result.WriteString("&notify")
+	result := []string{
+		"bkimage=",
+		BACKGROUND_IMAGE,
+		"&url=",
+		ClickURL,
+		"&lasttime=",
+		strconv.Itoa(int(now.Unix())),
+		"&clsbtimage1=",
+		CLOSE_IMAGE1,
+		"&clsbtimage2=",
+		CLOSE_IMAGE2,
+		"&clsbtx=",
+		CLOSE_BUTTON_X,
+		"&clsbty=",
+		CLOSE_BUTTON_Y,
+		"&nextmin=",
+		strconv.Itoa(NextMinute),
 	}
-	rw.Write(result.Bytes())
+	if notify {
+		result = append(result, "&notify")
+	}
+	rw.Write([]byte(strings.Join(result, "")))
 	remote_addr := req.Header.Get("X-Forwarded-For")
 	if remote_addr == "" {
 		remote_addr = req.Header.Get("X-Real-IP")
